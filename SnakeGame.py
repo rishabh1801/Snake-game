@@ -3,6 +3,7 @@ from pygame.locals import *
 import time
 import random
 
+speed = 0.1
 SIZE = 40
 BACKGROUND_COLOR = (110, 110, 5)
 
@@ -28,6 +29,7 @@ class Snake:
         self.direction = 'down'
         
         self.length = 1
+        self.speed = 0.2
         self.x = [40]
         self.y = [40] 
 
@@ -66,13 +68,16 @@ class Snake:
             self.parent_screen.blit(self.image, (self.x[i], self.y[i]))
        
         pygame.display.flip()
+    
+    def increase_speed(self):
+        self.speed = self.speed * 0.75
 
     def increase_length(self):
         self.length += 1
         self.x.append(-1)
         self.y.append(-1)
  
-class Game:
+class Game():
     def __init__(self):
         pygame.init()
         pygame.display.set_caption("SNAKE GAME")
@@ -123,18 +128,24 @@ class Game:
         if self.is_collision(self.snake.x[0], self.snake.y[0], self.apple.x, self.apple.y):
             self.play_sound("ding") 
             self.snake.increase_length()
-            self.apple.move()   
+            self.snake.increase_speed()
+            self.apple.move()
 
-
+        if not (0 <= self.snake.x[0] <= 1000 and 0 <= self.snake.y[0] <= 800):
+                self.play_sound('crash')
+                raise "Hit the boundry error"
+              
         for i in range(2, self.snake.length):    
             if self.is_collision(self.snake.x[0], self.snake.y[0], self.snake.x[i], self.snake.y[i]):
                 self.play_sound('crash') 
                 raise "Collision Occurred"
-              
+            
+            
     def display_score(self):
         font = pygame.font.SysFont('arial',30)
         score = font.render(f"Score: {self.snake.length}",True,(200,200,200))
         self.surface.blit(score,(850,10))
+    
           
     def show_game_over(self):
         self.render_background()
@@ -146,9 +157,13 @@ class Game:
         pygame.mixer.music.pause()
         pygame.display.flip()
         
+
+        
+
     def run(self):
         running = True
         pause = False
+
 
         while running:
             for event in pygame.event.get():
@@ -181,12 +196,12 @@ class Game:
                     self.play()
 
             except Exception as e:
+                print(e)
                 self.show_game_over()
                 pause = True
                 self.reset()
-
-            time.sleep(.10)     
        
+            time.sleep(self.snake.speed)     
 if __name__ == '__main__':
     game = Game()
     game.run()
